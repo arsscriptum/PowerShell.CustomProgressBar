@@ -1,0 +1,2 @@
+# PowerShell.CustomProgressBar
+CustomProgressBar

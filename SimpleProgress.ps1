@@ -99,7 +99,7 @@ function Initialize-AsciiProgressBar{
     Write-Host "$e[?25l"  -NoNewline  
 }
 
-function Update-AsciiProgressBar{
+function Show-AsciiProgressBar{
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false,Position=0, HelpMessage="The interval at which the progress will update.")]

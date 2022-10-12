@@ -50,6 +50,10 @@ function Invoke-DummyJob{
         [int]$Update=100
     )
     try{
+
+        # Default
+        #Initialize-AsciiProgressBar
+
         Initialize-AsciiProgressBar $EstimatedSeconds $Size
         
         $JobName = "DummyJob"
@@ -58,7 +62,11 @@ function Invoke-DummyJob{
         while($Working){
             try{
               
-                Update-AsciiProgressBar $Update 5
+                # Default
+                # Show-AsciiProgressBar
+
+                Show-AsciiProgressBar $Update 5 "Yellow"
+
                 $JobState = (Get-Job -Name $JobName).State
 
                 Write-verbose "JobState: $JobState"
@@ -73,12 +81,30 @@ function Invoke-DummyJob{
         
         $Data = Receive-Job -Name $JobName
         Get-Job $JobName | Remove-Job
-        $Data 
+        #$Data 
      }catch{
         Write-Error $_ 
     }
 }
 
+
+function Write-Title($Title){
+    [int]$len = ([System.Console]::WindowWidth - 1)
+    [string]$empty = [string]::new("=",$len)
+
+    cls
+    $TitleLen = $Title.Length
+    $posx = ([System.Console]::get_BufferWidth()/2) - ($TitleLen/2)
+    Write-ConsoleExtended $empty -f Yellow 
+    Write-ConsoleExtended "$Title" -x $posx -y ([System.Console]::get_CursorTop()+1) -f Red
+    Write-ConsoleExtended "`n$empty`n" -f Yellow ;
+}
+
+
+Write-Title "TEST 1 - Invoke-DummyJob"
 Invoke-DummyJob $Seconds
 
-Invoke-DummyJob $Seconds $Seconds 90 50
+Write-Title "TEST 2 - Invoke-DummyJob $Seconds $Seconds 40 50"
+Invoke-DummyJob $Seconds $Seconds 40 50
+
+# $Seconds $Seconds 90 50

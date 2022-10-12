@@ -17,12 +17,32 @@ The ```Show-AsciiProgressBar``` function is only a single line of text, at the c
 
 ```Initialize-AsciiProgressBar```
 
-Called once, before the job is started
+Called once, before the job is started. Initialize the progress bar with default settings, no countdown timer sizr of 30 character
+
+```Initialize-AsciiProgressBar 30 30```
+Initialize the progress bar so that it will diaplay a countdown timer for 30 seconds
 
 ```Show-AsciiProgressBar```
 
 Called at every iteration of the loop
+Without any arguments, Show-AsciiProgressBar displays a progress bar refreshing at every 100 milliseconds.
+If no value is provided for the Activity parameter, it will simply say "Current Task" and the completion percentage.
+
+```Show-AsciiProgressBar 50 5 "Yellow"```
+Displays a progress bar refreshing at every 50 milliseconds in Yellow color
+
 
 ---------------------------------------------------------------------------------------------------------
 ### EXAMPLE
 
+Use the provided dummy job code for example
+
+```
+
+	. .\Start-DummyJob.ps1 10
+
+```
+
+![CustomProgressBar](https://arsscriptum.github.io/files/gifs/CustomProgressBar.gif)
+
+![CustomProgressBar2](https://arsscriptum.github.io/files/gifs/CustomProgressBar2.gif)

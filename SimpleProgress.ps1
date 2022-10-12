@@ -1,8 +1,35 @@
 
 
 
-
 function Write-ConsoleExtended{
+
+<#
+.SYNOPSIS
+    Write a string in the console
+.DESCRIPTION
+    Write a string in the console at specific position and color
+.PARAMETER Message
+    Message to be printed
+.PARAMETER PosX
+   Cursor X position where message is to be printed
+.PARAMETER PosY
+    Cursor Y position where message is to be printed
+.PARAMETER ForegroundColor
+    Foreground color for the message
+.PARAMETER BackgroundColor
+    Background color for the message
+.PARAMETER Clear
+   Clear whatever is typed on this line currently
+.PARAMETER NoNewline
+    After printing the message, return the cursor back to its initial position
+.EXAMPLE
+    Write-ConsoleExtended "MY TITLE" -x ([System.Console]::get_BufferWidth()/2) -f Red
+    Write a string in the center of screen in red
+.NOTES
+    Author: Guillaume Plante
+    Last Updated: October 2022
+#>
+
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory = $True, Position = 0, HelpMessage="Message to be printed")] 
@@ -28,49 +55,37 @@ function Write-ConsoleExtended{
         [switch] $NoNewline
     ) 
 
-    # Save the current positions. If NoNewline switch is supplied, we should go back to these.
-    $cursor_left         = [System.Console]::get_CursorLeft()
-    $cursor_top          = [System.Console]::get_CursorTop()
     $fg_color            = [System.Console]::ForegroundColor
     $bg_color            = [System.Console]::BackgroundColor
+    $cursor_top          = [System.Console]::get_CursorTop()
+    $cursor_left         = [System.Console]::get_CursorLeft()
 
+    $new_cursor_x = $cursor_left
+    if ($PosX -ge 0) { $new_cursor_x = $PosX }
+   
+    $new_cursor_y = $cursor_top
+    if ($PosY -ge 0) { $new_cursor_y = $PosY } 
     
-    # Get the passed values of foreground and backgroun colors, and left and top cursor positions
-    $new_fg_color = $ForegroundColor
-    $new_bg_color = $BackgroundColor
-
-    if ($PosX -ge 0) {
-        $NewCursorLeft = $PosX
-    } else {
-        $NewCursorLeft = $cursor_left
+    if ( $Clear ) { 
+        [int]$len = ([System.Console]::WindowWidth - 1)  
+        # use the string constructor for init a string with character 32 (space), len times
+        [string]$empty = [string]::new([char]32,$len)                       
+        
+        [System.Console]::SetCursorPosition(0, $new_cursor_y)
+        [System.Console]::Write($empty)            
     }
+    [System.Console]::ForegroundColor = $ForegroundColor
+    [System.Console]::BackgroundColor = $BackgroundColor
+    
+    [System.Console]::SetCursorPosition($new_cursor_x, $new_cursor_y)
 
-    if ($PosY -ge 0) {
-        $NewCursorTop = $PosY
-    } else {
-        $NewCursorTop = $cursor_top
-    }
-
-    # if Clear switch is present, clear the current line on the console by writing " "
-    if ( $Clear ) {                        
-        $clearmsg = " " * ([System.Console]::WindowWidth - 1)  
-        [System.Console]::SetCursorPosition(0, $NewCursorTop)
-        [System.Console]::Write($clearmsg)            
-    }
-
-    # Update the console with the message.
-    [System.Console]::ForegroundColor = $new_fg_color
-    [System.Console]::BackgroundColor = $new_bg_color    
-    [System.Console]::SetCursorPosition($NewCursorLeft, $NewCursorTop)
+    # Write the message, if NoNewline, go ack to beginning
+    [System.Console]::Write($Message)
     if ( $NoNewline ) { 
-        # Dont print newline at the end, set cursor back to original position
-        [System.Console]::Write($Message)
         [System.Console]::SetCursorPosition($cursor_left, $cursor_top)
-    } else {
-        [System.Console]::WriteLine($Message)
-    }    
+    }
 
-    # Set foreground and backgroun colors back to original values.
+    # back to previous colors
     [System.Console]::ForegroundColor = $fg_color
     [System.Console]::BackgroundColor = $bg_color
 }
@@ -78,7 +93,31 @@ function Write-ConsoleExtended{
 
 [System.Diagnostics.Stopwatch]$Script:progressSw = [System.Diagnostics.Stopwatch]::new()
 
+
 function Initialize-AsciiProgressBar{
+<#
+.SYNOPSIS
+    Initialize the Ascii Progress Bar
+.DESCRIPTION
+    Initialize the Ascii Progress Bar by seting the size of the bar in characters. If you set the EstimatedSeconds
+    value, there will e a countdown timer in the progress bar.
+.PARAMETER EstimatedSeconds
+    The estimated time of the job that will be refreshing the progress bar. If this is set there will be a countdown
+    timer in the progress message
+.PARAMETER Size
+    The size of the progress bar in characters
+.EXAMPLE
+    Initialize-AsciiProgressBar 30 
+    Initialize the progress bar with default settings, no countdown timer sizr of 30 character
+.EXAMPLE
+    Initialize-AsciiProgressBar 30 30
+    Initialize the progress bar so that it will diaplay a countdown timer for 30 seconds
+.NOTES
+    Author: Guillaume Plante
+    Last Updated: October 2022
+#>
+
+
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false,Position=0, HelpMessage="The estimated time the process will take")]
@@ -93,22 +132,67 @@ function Initialize-AsciiProgressBar{
     $Script:Pos=0
     $Script:EstimatedSeconds = $EstimatedSeconds
     $Script:progressSw.Start()
-    
+    [Datetime]$Script:StartTime = [Datetime]::Now
     $e = "$([char]27)"
     #hide the cursor
     Write-Host "$e[?25l"  -NoNewline  
 }
 
 function Show-AsciiProgressBar{
+
+<#
+.SYNOPSIS
+    Displays the completion status for a running task.
+.DESCRIPTION
+    Show-AsciiProgressBar displays the progress of a long-running activity, task, 
+    operation, etc. It is displayed as a progress bar, along with the 
+    completed percentage of the task. It displays on a single line (where 
+    the cursor is located). As opposed to Write-Progress, it doesn't hide 
+    the upper block of text in the PowerShell console.
+.PARAMETER UpdateDelay
+    The 'refresh' interval for the update of the progress bar. This will **not** sleep.
+    If the function is called 100 times per seconds and the UpdateDelay is 100, the progress bar will be
+    refreshed once every 100 milliseconds, **not** 100*seconds 
+.PARAMETER ProgressDelay
+    Amount of time between two 'refreshes' of the percentage complete and update
+    of the progress bar. This is a sleep in the function. Default is 5 ms
+.PARAMETER ForegroundColor
+    Foreground color for the message
+.PARAMETER BackgroundColor
+    Background color for the message
+.PARAMETER EmptyChar
+    The character used in the progress bar
+.PARAMETER FullChar
+    The character used in the progress bar
+.EXAMPLE
+    Show-AsciiProgressBar
+    Without any arguments, Show-AsciiProgressBar displays a progress bar refreshing at every 100 milliseconds.
+    If no value is provided for the Activity parameter, it will simply say 
+    "Current Task" and the completion percentage.
+.EXAMPLE
+    Show-AsciiProgressBar 50 5 "Yellow"
+    Displays a progress bar refreshing at every 50 milliseconds in Yellow color
+.NOTES
+    Author: Guillaume Plante
+    Last Updated: October 2022
+#>
+
+
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false,Position=0, HelpMessage="The interval at which the progress will update.")]
         [int]$UpdateDelay=100,
         [Parameter(Mandatory = $False,Position=1, HelpMessage="The delay this function will sleep for, in ms. Used to replace the sleed in calling job")] 
         [int]$ProgressDelay=5,
-        [Parameter(Mandatory = $False, HelpMessage="Empty char in the ascii progress bar")]
+        [Parameter(Mandatory = $False,Position=2, HelpMessage="Foreground color for the message")] 
+        [Alias('f')]
+        [System.ConsoleColor] $ForegroundColor = [System.Console]::ForegroundColor,
+        [Parameter(Mandatory = $False,Position=3, HelpMessage="Background color for the message")] 
+        [Alias('b')]
+        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor,
+        [Parameter(Mandatory = $False,Position=4, HelpMessage="Empty char in the ascii progress bar")]
         [char]$EmptyChar = '-',
-        [Parameter(Mandatory = $False, HelpMessage="Full char in the ascii progress bar")]
+        [Parameter(Mandatory = $False,Position=5, HelpMessage="Full char in the ascii progress bar")]
         [char]$FullChar = 'O'
     )
  
@@ -116,7 +200,7 @@ function Show-AsciiProgressBar{
     if($ms -lt $UpdateDelay){
         return
     }
-    
+    $ElapsedSeconds = [Datetime]::Now - $Script:StartTime
     $Script:progressSw.Restart()
     $Script:Index++
     $Half = $Max / 2
@@ -138,11 +222,14 @@ function Show-AsciiProgressBar{
         $str += "$EmptyChar"
     }
     $ElapsedTimeStr = ''
-    $ts =  [timespan]::fromseconds($Script:ElapsedSeconds)
+   # $Script:EstimatedSeconds = $Script:EstimatedSeconds - $ElapsedSeconds.TotalSeconds
+   # $Script:EstimatedSeconds =  $ElapsedSeconds.TotalSeconds
+    $secsofar =  $Script:EstimatedSeconds - $ElapsedSeconds.TotalSeconds
+    $ts =  [timespan]::fromseconds($secsofar)
     if($ts.Ticks -gt 0){
         $ElapsedTimeStr = "{0:mm:ss}" -f ([datetime]$ts.Ticks)
     }
     $ProgressMessage = "Progress: [{0}] {1}" -f $str, $ElapsedTimeStr
-    Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "Gray"  -Clear -NoNewline
+    Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "$ForegroundColor" -BackgroundColor "$BackgroundColor"  -Clear -NoNewline
     Start-Sleep -Milliseconds $ProgressDelay
 }

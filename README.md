@@ -50,7 +50,8 @@ Start a dummy job with ASCII progress bar
 
 ```
 
-![CustomProgressBar2](https://arsscriptum.github.io/files/gifs/CustomProgressBar2.gif)
+### Activity Indicator
+![ActivityIndicator](https://arsscriptum.github.io/files/gifs/ActivityIndicator.gif)
 
-
-![CustomProgressBar3](https://arsscriptum.github.io/files/gifs/CustomProgressBar3.gif)
+### Progress Bar
+![ProgressWheel](https://arsscriptum.github.io/files/gifs/ProgressWheel.gif)

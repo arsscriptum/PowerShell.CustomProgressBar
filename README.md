@@ -35,7 +35,14 @@ Displays a progress bar refreshing at every 50 milliseconds in Yellow color
 ---------------------------------------------------------------------------------------------------------
 ### EXAMPLE
 
+You can use Get-Help to view the help for the function or use the switch -Examples to see some usage examples from the function's native help. Of course, the best way to test and understand Show-Progress is to put it to work. Let's look at a few usage scenarios.
+
 Use the provided dummy job code for example
+```
+    Get-Help Show-AsciiProgressBar -Examples
+```
+
+Start a dummy job with ASCII progress bar
 
 ```
 
@@ -46,3 +53,4 @@ Use the provided dummy job code for example
 ![CustomProgressBar](https://arsscriptum.github.io/files/gifs/CustomProgressBar.gif)
 
 ![CustomProgressBar2](https://arsscriptum.github.io/files/gifs/CustomProgressBar2.gif)
+

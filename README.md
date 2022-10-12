@@ -52,3 +52,5 @@ Start a dummy job with ASCII progress bar
 
 ![CustomProgressBar2](https://arsscriptum.github.io/files/gifs/CustomProgressBar2.gif)
 
+
+![CustomProgressBar3](https://arsscriptum.github.io/files/gifs/CustomProgressBar3.gif)

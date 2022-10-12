@@ -236,3 +236,17 @@ function Show-AsciiProgressBar{
     Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "$ForegroundColor" -BackgroundColor "$BackgroundColor"  -Clear -NoNewline
     Start-Sleep -Milliseconds $ProgressDelay
 }
+
+
+
+function Write-Title($Title){
+    [int]$len = ([System.Console]::WindowWidth - 1)
+    [string]$empty = [string]::new("=",$len)
+
+    cls
+    $TitleLen = $Title.Length
+    $posx = ([System.Console]::get_BufferWidth()/2) - ($TitleLen/2)
+    Write-ConsoleExtended $empty -f Yellow 
+    Write-ConsoleExtended "$Title" -x $posx -y ([System.Console]::get_CursorTop()+1) -f Red
+    Write-ConsoleExtended "`n$empty`n" -f Yellow ;
+}

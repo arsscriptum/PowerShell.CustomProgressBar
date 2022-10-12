@@ -65,5 +65,5 @@ Start a dummy job with ASCII progress bar
 ### Progress Bar
 ![Progress Wheel](https://arsscriptum.github.io/files/gifs/ProgressWheel.gif)
 
-### Progress Bar
-![Progress Wheel Demo](https://arsscriptum.github.io/files/gifs/ProgressWheelDemo.gif)
+### Progress Bar Demo
+![Progress Wheel Demo](https://arsscriptum.github.io/files/gifs/DemoProgressWheel.gif)

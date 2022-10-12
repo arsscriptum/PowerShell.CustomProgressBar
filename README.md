@@ -60,7 +60,10 @@ Start a dummy job with ASCII progress bar
 ```
 
 ### Activity Indicator
-![ActivityIndicator](https://arsscriptum.github.io/files/gifs/ActivityIndicator.gif)
+![Activity Indicator](https://arsscriptum.github.io/files/gifs/ActivityIndicator.gif)
 
 ### Progress Bar
-![ProgressWheel](https://arsscriptum.github.io/files/gifs/ProgressWheel.gif)
+![Progress Wheel](https://arsscriptum.github.io/files/gifs/ProgressWheel.gif)
+
+### Progress Bar
+![Progress Wheel Demo](https://arsscriptum.github.io/files/gifs/ProgressWheelDemo.gif)

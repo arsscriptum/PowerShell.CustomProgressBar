@@ -97,8 +97,15 @@ function Write-ConsoleExtended{
 
 [System.Diagnostics.Stopwatch]$Script:progressSw = [System.Diagnostics.Stopwatch]::new()
 
+function Stop-AsciiProgressBar{
+    #restore scrolling region
+    $e = "$([char]27)"
+    Write-Host "$e[s$($e)[r$($e)[u" -NoNewline
+    #show the cursor
+    Write-Host "$e[?25h" 
+}
 
-function Initialize-AsciiProgressBar{
+function Start-AsciiProgressBar{
 <#
 .SYNOPSIS
     Initialize the Ascii Progress Bar
@@ -153,6 +160,9 @@ function Initialize-AsciiProgressBar{
     #hide the cursor
     Write-Host "$e[?25l"  -NoNewline  
 }
+
+New-Alias -Name Initialize-AsciiProgressBar -Value Start-AsciiProgressBar -Force -ErrorAction Ignore | Out-Null
+
 
 function Show-ActivityIndicatorBar{
 
@@ -290,17 +300,24 @@ function Show-AsciiProgressBar{
         [Parameter(Mandatory = $True,Position=0, HelpMessage="Completion percentage.")]
         [ValidateRange(0, 100)]
         [int]$Percentage,
-        [Parameter(Mandatory = $false,Position=1, HelpMessage="The interval at which the progress will update.")]
+        [Parameter(Mandatory = $false,Position=1, HelpMessage="Completion percentage.")]
+        [string]$Message="",
+        [Parameter(Mandatory = $false,Position=2, HelpMessage="The interval at which the progress will update.")]
         [int]$UpdateDelay=100,
-        [Parameter(Mandatory = $False,Position=2, HelpMessage="The delay this function will sleep for, in ms. Used to replace the sleed in calling job")] 
+        [Parameter(Mandatory = $False,Position=3, HelpMessage="The delay this function will sleep for, in ms. Used to replace the sleed in calling job")] 
         [int]$ProgressDelay=5,
-        [Parameter(Mandatory = $False,Position=3, HelpMessage="Foreground color for the message")] 
+        [Parameter(Mandatory = $False,Position=4, HelpMessage="Foreground color for the message")] 
         [Alias('f')]
         [System.ConsoleColor] $ForegroundColor = [System.Console]::ForegroundColor,
-        [Parameter(Mandatory = $False,Position=4, HelpMessage="Background color for the message")] 
+        [Parameter(Mandatory = $False,Position=5, HelpMessage="Background color for the message")] 
         [Alias('b')]
         [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor
     )
+
+    $ms = $Script:progressSw.Elapsed.TotalMilliseconds
+    if($ms -lt $UpdateDelay){
+        return
+    }
 
     $spinners = @( "-","\","|","/")
     $Script:CurrentSpinnerIndex++
@@ -308,10 +325,7 @@ function Show-AsciiProgressBar{
         $Script:CurrentSpinnerIndex = 0
     }
     $CurrentSpinner = $spinners[$Script:CurrentSpinnerIndex]
-    $ms = $Script:progressSw.Elapsed.TotalMilliseconds
-    if($ms -lt $UpdateDelay){
-        return
-    }
+
     $ElapsedSeconds = [Datetime]::Now - $Script:StartTime
     $Script:progressSw.Restart()
    
@@ -334,7 +348,7 @@ function Show-AsciiProgressBar{
     if($ts.Ticks -gt 0){
         $ElapsedTimeStr = "{0:mm:ss}" -f ([datetime]$ts.Ticks)
     }
-    $ProgressMessage = "Progress: [{0}] {1}" -f $str, $ElapsedTimeStr
+    $ProgressMessage = "Progress: [{0}] {1} {2}" -f $str, $ElapsedTimeStr, $Message
     Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "$ForegroundColor" -BackgroundColor "$BackgroundColor"  -Clear -NoNewline
     Start-Sleep -Milliseconds $ProgressDelay
 }

@@ -10,9 +10,16 @@ param(
     [int]$Seconds
 )
 
-
-. "$PSScriptRoot\SimpleProgress.ps1"
-
+$FatalError = $False
+try{
+. "$PSScriptRoot\SimpleProgress.ps1"  
+}catch [Exception]{
+    Write-Error $_ 
+    $FatalError = $True
+}
+if($FatalError){
+    return
+}
 
 $DummyJobScript = {
       param($RunForSeconds)
@@ -53,26 +60,38 @@ function Invoke-DummyJob{
         [Parameter(Mandatory = $False,Position=2, HelpMessage="The size of the progress bar")] 
         [int]$Size=30,
         [Parameter(Mandatory = $False,Position=3, HelpMessage="Update delay")] 
-        [int]$Update=100
+        [int]$Update=100,
+        [Parameter(Mandatory = $False,Position=4)] 
+        [switch]$ProgressIndicator
     )
     try{
 
-        # Default
-        #Initialize-AsciiProgressBar
-
-        Initialize-AsciiProgressBar $EstimatedSeconds $Size
+        if($ProgressIndicator){
+            Initialize-AsciiProgressBar $EstimatedSeconds $Size ' ' '.'
+        }else{
+            Initialize-AsciiProgressBar $EstimatedSeconds $Size
+        }
         
+        $Script:LatestPercentage = 0
+        [regex]$pattern = [regex]::new('([\[]+)(?<percent>[\d]+)([\%\ \]]+)')
         $JobName = "DummyJob"
         $Working = $True
         $jobby = Start-Job -Name $JobName -ScriptBlock $DummyJobScriptBlock -ArgumentList ($Seconds)
         while($Working){
             try{
-              
-                # Default
-                # Show-AsciiProgressBar
-
-                Show-AsciiProgressBar $Update 5 "Yellow"
-
+            
+                if($ProgressIndicator){
+                   
+                    $Data = Receive-Job -Name $JobName | Select -Last 1
+                    if($Data -match $pattern){
+                        $percent = $Matches.percent
+                        $percent = 100 -$percent
+                        $Script:LatestPercentage = $percent
+                    }
+                    Show-AsciiProgressBar $Script:LatestPercentage $Update 50 "Yellow"
+                }else{
+                    Show-ActivityIndicatorBar $Update 5 "Yellow"
+                }
                 $JobState = (Get-Job -Name $JobName).State
 
                 Write-verbose "JobState: $JobState"
@@ -89,7 +108,7 @@ function Invoke-DummyJob{
         Get-Job $JobName | Remove-Job
         #$Data 
      }catch{
-        Write-Error $_ 
+        Show-ExceptionDetails $_ -ShowStack 
     }
 }
 
@@ -106,11 +125,12 @@ function Write-Title($Title){
     Write-ConsoleExtended "`n$empty`n" -f Yellow ;
 }
 
+$JobCount = (Get-Job).Count
+Write-Host "Removing $JobCount thread jobs" -n
+Get-Job | % { $n = $_.Name ;  Write-Host "$n " -n -f Red;Remove-Job $_ -Force ; }
 
-Write-Title "TEST 1 - Invoke-DummyJob"
-Invoke-DummyJob $Seconds
+Write-Title "TEST 1 - Actvity Indicator"
+Invoke-DummyJob $Seconds $Seconds 40 50 
 
-Write-Title "TEST 2 - Invoke-DummyJob $Seconds $Seconds 40 50"
-Invoke-DummyJob $Seconds $Seconds 40 50
-
-# $Seconds $Seconds 90 50
+Write-Title "TEST 2 - Progress Indicator"
+Invoke-DummyJob $Seconds $Seconds 40 50 -ProgressIndicator

@@ -110,12 +110,17 @@ function Initialize-AsciiProgressBar{
     timer in the progress message
 .PARAMETER Size
     The size of the progress bar in characters
+.PARAMETER EmptyChar
+    The character used in the progress bar
+.PARAMETER FullChar
+    The character used in the progress bar
 .EXAMPLE
     Initialize-AsciiProgressBar 30 
     Initialize the progress bar with default settings, no countdown timer sizr of 30 character
 .EXAMPLE
     Initialize-AsciiProgressBar 30 30
     Initialize the progress bar so that it will diaplay a countdown timer for 30 seconds
+
 .NOTES
     Author: Guillaume Plante
     Last Updated: October 2022
@@ -127,14 +132,21 @@ function Initialize-AsciiProgressBar{
         [Parameter(Mandatory = $false,Position=0, HelpMessage="The estimated time the process will take")]
         [int]$EstimatedSeconds=0,
         [Parameter(Mandatory = $False,Position=1, HelpMessage="The size of the progress bar")] 
-        [int]$Size=30
+        [int]$Size=30,
+        [Parameter(Mandatory = $False,Position=2, HelpMessage="Empty char in the ascii progress bar")]
+        [char]$EmptyChar = '-',
+        [Parameter(Mandatory = $False,Position=3, HelpMessage="Full char in the ascii progress bar")]
+        [char]$FullChar = 'O'
     )
 
+    $Script:CurrentSpinnerIndex = 0
     $Script:Max = $Size
     $Script:Half = $Size/2
     $Script:Index = 0
     $Script:Pos=0
     $Script:EstimatedSeconds = $EstimatedSeconds
+    $Script:EmptyChar = $EmptyChar
+    $Script:FullChar = $FullChar
     $Script:progressSw.Start()
     [Datetime]$Script:StartTime = [Datetime]::Now
     $e = "$([char]27)"
@@ -142,13 +154,13 @@ function Initialize-AsciiProgressBar{
     Write-Host "$e[?25l"  -NoNewline  
 }
 
-function Show-AsciiProgressBar{
+function Show-ActivityIndicatorBar{
 
 <#
 .SYNOPSIS
     Displays the completion status for a running task.
 .DESCRIPTION
-    Show-AsciiProgressBar displays the progress of a long-running activity, task, 
+    Show-ActivityIndicatorBar displays the progress of a long-running activity, task, 
     operation, etc. It is displayed as a progress bar, along with the 
     completed percentage of the task. It displays on a single line (where 
     the cursor is located). As opposed to Write-Progress, it doesn't hide 
@@ -169,12 +181,12 @@ function Show-AsciiProgressBar{
 .PARAMETER FullChar
     The character used in the progress bar
 .EXAMPLE
-    Show-AsciiProgressBar
-    Without any arguments, Show-AsciiProgressBar displays a progress bar refreshing at every 100 milliseconds.
+    Show-ActivityIndicatorBar
+    Without any arguments, Show-ActivityIndicatorBar displays a progress bar refreshing at every 100 milliseconds.
     If no value is provided for the Activity parameter, it will simply say 
     "Current Task" and the completion percentage.
 .EXAMPLE
-    Show-AsciiProgressBar 50 5 "Yellow"
+    Show-ActivityIndicatorBar 50 5 "Yellow"
     Displays a progress bar refreshing at every 50 milliseconds in Yellow color
 .NOTES
     Author: Guillaume Plante
@@ -193,11 +205,7 @@ function Show-AsciiProgressBar{
         [System.ConsoleColor] $ForegroundColor = [System.Console]::ForegroundColor,
         [Parameter(Mandatory = $False,Position=3, HelpMessage="Background color for the message")] 
         [Alias('b')]
-        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor,
-        [Parameter(Mandatory = $False,Position=4, HelpMessage="Empty char in the ascii progress bar")]
-        [char]$EmptyChar = '-',
-        [Parameter(Mandatory = $False,Position=5, HelpMessage="Full char in the ascii progress bar")]
-        [char]$FullChar = 'O'
+        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor
     )
  
     $ms = $Script:progressSw.Elapsed.TotalMilliseconds
@@ -219,11 +227,11 @@ function Show-AsciiProgressBar{
 
     $str = ''
     For($a = 0 ; $a -lt $Script:Pos ; $a++){
-        $str += "$EmptyChar"
+        $str += "$Script:EmptyChar"
     }
-    $str += "$FullChar"
+    $str += "$Script:FullChar"
     For($a = $Half ; $a -gt $Script:Pos ; $a--){
-        $str += "$EmptyChar"
+        $str += "$Script:EmptyChar"
     }
     $ElapsedTimeStr = ''
 
@@ -237,6 +245,98 @@ function Show-AsciiProgressBar{
     Start-Sleep -Milliseconds $ProgressDelay
 }
 
+
+function Show-AsciiProgressBar{
+
+<#
+.SYNOPSIS
+    Displays the completion status for a running task.
+.DESCRIPTION
+    Show-AsciiProgressBar displays the progress of a long-running activity, task, 
+    operation, etc. It is displayed as a progress bar, along with the 
+    completed percentage of the task. It displays on a single line (where 
+    the cursor is located). As opposed to Write-Progress, it doesn't hide 
+    the upper block of text in the PowerShell console.
+.PARAMETER Percentage
+    Completion percentage
+.PARAMETER UpdateDelay
+    The 'refresh' interval for the update of the progress bar. This will **not** sleep.
+    If the function is called 100 times per seconds and the UpdateDelay is 100, the progress bar will be
+    refreshed once every 100 milliseconds, **not** 100*seconds 
+.PARAMETER ProgressDelay
+    Amount of time between two 'refreshes' of the percentage complete and update
+    of the progress bar. This is a sleep in the function. Default is 5 ms
+.PARAMETER ForegroundColor
+    Foreground color for the message
+.PARAMETER BackgroundColor
+    Background color for the message
+
+.EXAMPLE
+    Show-AsciiProgressBar
+    Without any arguments, Show-AsciiProgressBar displays a progress bar refreshing at every 100 milliseconds.
+    If no value is provided for the Activity parameter, it will simply say 
+    "Current Task" and the completion percentage.
+.EXAMPLE
+    Show-AsciiProgressBar 50 5 "Yellow"
+    Displays a progress bar refreshing at every 50 milliseconds in Yellow color
+.NOTES
+    Author: Guillaume Plante
+    Last Updated: October 2022
+#>
+
+
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $True,Position=0, HelpMessage="Completion percentage.")]
+        [int]$Percentage,
+        [Parameter(Mandatory = $false,Position=1, HelpMessage="The interval at which the progress will update.")]
+        [int]$UpdateDelay=100,
+        [Parameter(Mandatory = $False,Position=2, HelpMessage="The delay this function will sleep for, in ms. Used to replace the sleed in calling job")] 
+        [int]$ProgressDelay=5,
+        [Parameter(Mandatory = $False,Position=3, HelpMessage="Foreground color for the message")] 
+        [Alias('f')]
+        [System.ConsoleColor] $ForegroundColor = [System.Console]::ForegroundColor,
+        [Parameter(Mandatory = $False,Position=4, HelpMessage="Background color for the message")] 
+        [Alias('b')]
+        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor
+    )
+
+    $spinners = @( "-","\","|","/")
+    $Script:CurrentSpinnerIndex++
+    if($Script:CurrentSpinnerIndex -ge $spinners.Count){
+        $Script:CurrentSpinnerIndex = 0
+    }
+    $CurrentSpinner = $spinners[$Script:CurrentSpinnerIndex]
+    $ms = $Script:progressSw.Elapsed.TotalMilliseconds
+    if($ms -lt $UpdateDelay){
+        return
+    }
+    $ElapsedSeconds = [Datetime]::Now - $Script:StartTime
+    $Script:progressSw.Restart()
+   
+    $Script:Pos = [math]::Round(($Script:Max / 100) * $Percentage)
+    
+
+    $str = ''
+    For($a = 0 ; $a -lt $Script:Pos ; $a++){
+        $str += "$Script:FullChar"
+    }
+    $str += $CurrentSpinner
+    For($a = $Script:Pos ; $a -lt $Script:Max ; $a++){
+        $str += "$Script:EmptyChar"
+    }
+
+    $ElapsedTimeStr = ''
+
+    $secsofar =  $Script:EstimatedSeconds - $ElapsedSeconds.TotalSeconds
+    $ts =  [timespan]::fromseconds($secsofar)
+    if($ts.Ticks -gt 0){
+        $ElapsedTimeStr = "{0:mm:ss}" -f ([datetime]$ts.Ticks)
+    }
+    $ProgressMessage = "Progress: [{0}] {1}" -f $str, $ElapsedTimeStr
+    Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "$ForegroundColor" -BackgroundColor "$BackgroundColor"  -Clear -NoNewline
+    Start-Sleep -Milliseconds $ProgressDelay
+}
 
 
 function Write-Title($Title){

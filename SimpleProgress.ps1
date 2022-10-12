@@ -288,6 +288,7 @@ function Show-AsciiProgressBar{
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $True,Position=0, HelpMessage="Completion percentage.")]
+        [ValidateRange(0, 100)]
         [int]$Percentage,
         [Parameter(Mandatory = $false,Position=1, HelpMessage="The interval at which the progress will update.")]
         [int]$UpdateDelay=100,

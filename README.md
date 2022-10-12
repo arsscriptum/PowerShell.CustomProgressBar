@@ -8,7 +8,11 @@ To provides a nice, compact way to display the progress of longer-running tasks 
 
 You can use it as a replacement for Write-Progress. While this has the advantage of being a "native" cmdlet with a few options to customize the progress of tasks, it occupies a bit of real estate in the PowerShell window (the upper portion of the console), sometimes hiding interesting information. 
 
-The ```Show-AsciiProgressBar``` function is only a single line of text, at the current cursor position, and does not hide any output or status messages from other commands.
+Both ```Show-ActivityIndicatorBar``` and ```Show-AsciiProgressBar```  function is only a single line of text, at the current cursor position, and does not hide any output or status messages from other commands.
+
+The ```Show-ActivityIndicatorBar``` function shows an animation to represent activity in the job
+
+The ```Show-AsciiProgressBar``` displays a progress bar with completion percentage
 
 ---------------------------------------------------------------------------------------------------------
 
@@ -21,6 +25,11 @@ Called once, before the job is started. Initialize the progress bar with default
 
 ```Initialize-AsciiProgressBar 30 30```
 Initialize the progress bar so that it will diaplay a countdown timer for 30 seconds
+
+
+```Show-ActivityIndicatorBar```
+Called at every iteration of the loop
+Shows an animation to represent activity in the job
 
 ```Show-AsciiProgressBar```
 

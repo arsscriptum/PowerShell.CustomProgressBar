@@ -129,8 +129,8 @@ $JobCount = (Get-Job).Count
 Write-Host "Removing $JobCount thread jobs" -n
 Get-Job | % { $n = $_.Name ;  Write-Host "$n " -n -f Red;Remove-Job $_ -Force ; }
 
-#Write-Title "TEST 1 - Actvity Indicator"
-#Invoke-DummyJob $Seconds $Seconds 40 50 
+Write-Title "TEST 1 - Actvity Indicator"
+Invoke-DummyJob $Seconds $Seconds 40 50 
 
 Write-Title "TEST 2 - Progress Indicator"
 Invoke-DummyJob $Seconds $Seconds 40 50 -ProgressIndicator

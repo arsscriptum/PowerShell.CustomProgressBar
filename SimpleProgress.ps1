@@ -222,8 +222,7 @@ function Show-AsciiProgressBar{
         $str += "$EmptyChar"
     }
     $ElapsedTimeStr = ''
-   # $Script:EstimatedSeconds = $Script:EstimatedSeconds - $ElapsedSeconds.TotalSeconds
-   # $Script:EstimatedSeconds =  $ElapsedSeconds.TotalSeconds
+
     $secsofar =  $Script:EstimatedSeconds - $ElapsedSeconds.TotalSeconds
     $ts =  [timespan]::fromseconds($secsofar)
     if($ts.Ticks -gt 0){

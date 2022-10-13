@@ -84,11 +84,12 @@ function Invoke-DummyJob{
                    
                     $Data = Receive-Job -Name $JobName | Select -Last 1
                     if($Data -match $pattern){
-                        $percent = $Matches.percent
-                        $percent = 100 -$percent
+                        [int]$percent = $Matches.percent
+                        [int]$percent = 100 -$percent
                         $Script:LatestPercentage = $percent
                     }
-                    Show-AsciiProgressBar $Script:LatestPercentage $Update 50 "Yellow"
+                     $ProgressMessage = "Completed {0} %" -f $percent
+                     Show-AsciiProgressBar $Script:LatestPercentage $ProgressMessage 50 2 "White" "DarkGray"
                 }else{
                     Show-ActivityIndicatorBar $Update 5 "Yellow"
                 }

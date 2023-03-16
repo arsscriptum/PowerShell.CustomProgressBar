@@ -85,10 +85,10 @@ We parse the JSON, get the list of spinners. We select one and then just iterate
 
 
 ### Activity Indicator
-![Activity Indicator](https://arsscriptum.github.io/files/gifs/ActivityIndicator.gif)
+![Activity Indicator](https://arsscriptum.github.io/assets/img/posts/custom-progressbar/ActivityIndicator.gif)
 
 ### Progress Bar
-![Progress Wheel](https://arsscriptum.github.io/files/gifs/ProgressWheel.gif)
+![Progress Wheel](https://arsscriptum.github.io/assets/img/posts/custom-progressbar/ProgressWheel.gif)
 
 ### Progress Bar Demo
-![Progress Wheel Demo](https://arsscriptum.github.io/files/gifs/ProgressWheelDemo.gif)
+![Progress Wheel Demo](https://arsscriptum.github.io/assets/img/posts/custom-progressbar/ProgressWheelDemo.gif)

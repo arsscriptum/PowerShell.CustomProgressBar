@@ -59,6 +59,31 @@ Start a dummy job with ASCII progress bar
 
 ```
 
+
+
+## MORE PROGRESS NOTIFICATION FUN
+
+Progress bars, or progress notifiers using ascii characters ? Why not.
+
+### HOW
+
+The file ```SpinnersList.json``` contains a list of spinners. Spinners are an object with a list of characters and the interval at which they should be outputed.
+
+We parse the JSON, get the list of spinners. We select one and then just iterate in all the frames of the spinner. ```$CurrentSpinner.frames```
+
+
+### How To Test
+
+```
+   . ./Test-ProgressNotifier.ps1
+```
+
+### Demo 
+
+
+![Demo](https://raw.githubusercontent.com/arsscriptum/PowerShell.Reddit.Support/master/Progress.Spinners/gif/demo.gif)
+
+
 ### Activity Indicator
 ![Activity Indicator](https://arsscriptum.github.io/files/gifs/ActivityIndicator.gif)
 

@@ -311,7 +311,9 @@ function Show-AsciiProgressBar{
         [System.ConsoleColor] $ForegroundColor = [System.Console]::ForegroundColor,
         [Parameter(Mandatory = $False,Position=5, HelpMessage="Background color for the message")] 
         [Alias('b')]
-        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor
+        [System.ConsoleColor] $BackgroundColor = [System.Console]::BackgroundColor,
+        [Parameter(Mandatory = $false, HelpMessage="Progress message very small")]
+        [switch]$Clean
     )
 
     $ms = $Script:progressSw.Elapsed.TotalMilliseconds
@@ -326,6 +328,9 @@ function Show-AsciiProgressBar{
     }
     $CurrentSpinner = $spinners[$Script:CurrentSpinnerIndex]
 
+    if($Clean){
+        $CurrentSpinner = "]"
+    }
     $ElapsedSeconds = [Datetime]::Now - $Script:StartTime
     $Script:progressSw.Restart()
    
@@ -348,7 +353,13 @@ function Show-AsciiProgressBar{
     if($ts.Ticks -gt 0){
         $ElapsedTimeStr = "{0:mm:ss}" -f ([datetime]$ts.Ticks)
     }
+
     $ProgressMessage = "Progress: [{0}] {1} {2}" -f $str, $ElapsedTimeStr, $Message
+
+    if($Clean){
+        $ProgressMessage = "{0} [{1}" -f $Message,$str
+    }
+    
     Write-ConsoleExtended "$ProgressMessage" -ForegroundColor "$ForegroundColor" -BackgroundColor "$BackgroundColor"  -Clear -NoNewline
     Start-Sleep -Milliseconds $ProgressDelay
 }

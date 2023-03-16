@@ -6,8 +6,8 @@
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [Parameter(Mandatory = $True, Position = 0, HelpMessage="Run for x seconds")] 
-    [int]$Seconds
+    [Parameter(Mandatory = $false, HelpMessage="Run for x seconds")] 
+    [int]$Seconds=5
 )
 
 $FatalError = $False
@@ -89,7 +89,7 @@ function Invoke-DummyJob{
                         $Script:LatestPercentage = $percent
                     }
                      $ProgressMessage = "Completed {0} %" -f $percent
-                     Show-AsciiProgressBar $Script:LatestPercentage $ProgressMessage 50 2 "White" "DarkGray"
+                     Show-AsciiProgressBar $Script:LatestPercentage $ProgressMessage 50 2 "Gray" "Black"
                 }else{
                     Show-ActivityIndicatorBar $Update 5 "Yellow"
                 }
@@ -104,7 +104,7 @@ function Invoke-DummyJob{
                 Write-Error $_
             }
         }
-        
+        Write-ConsoleExtended "Both tests completed successfully" -ForegroundColor "DarkGreen" -Clear
         $Data = Receive-Job -Name $JobName
         Get-Job $JobName | Remove-Job
         #$Data 
